@@ -1,5 +1,7 @@
 flask
 deepface
+tf-keras
+tensorflow==2.11.0
 opencv-python-headless
 numpy
 Pillow
