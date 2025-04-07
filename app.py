@@ -31,37 +31,38 @@ def extract_face(image):
         print(f"[ERROR] Face extraction failed: {e}")
         return None
 
+import traceback
+
 @app.route('/compare_faces', methods=['POST'])
 def compare_faces():
     try:
         data = request.json
-        img1 = decode_image(data.get('image1', ''))
-        img2 = decode_image(data.get('image2', ''))
+        img1_base64 = data.get('image1', '')
+        img2_base64 = data.get('image2', '')
+
+        img1 = decode_image(img1_base64)
+        img2 = decode_image(img2_base64)
+
+        face1 = extract_face(img1)
+        face2 = extract_face(img2)
 
         if img1 is None or img2 is None:
             return jsonify({"error": "Invalid image data"}), 400
 
-        face1 = extract_face(img1)
-        face2 = extract_face(img2)
-        if face1 is None or face2 is None:
-            return jsonify({"error": "Face not detected"}), 400
-
-        result = DeepFace.verify(
-            face1, face2,
-            model_name="SFace",  # Lightweight model
-            detector_backend="opencv",  # Lightweight detector
-            enforce_detection=False
+        resultFacenet512 = DeepFace.verify(
+            face1, face2, model_name="Facenet512", detector_backend="opencv", enforce_detection=False
         )
 
-        similarity = (1 - result["distance"]) * 100
+        similarity = (1 - resultFacenet512['distance']) * 100
 
         return jsonify({
-            "match": result["verified"],
+            "match": resultFacenet512['verified'],
             "similarity": f"{similarity:.2f}"
         })
 
     except Exception as e:
-        print(f"[ERROR] {e}")
+        print("[ERROR]", e)
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
