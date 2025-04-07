@@ -1,12 +1,20 @@
 from flask import Flask, request, jsonify
 from deepface import DeepFace
-import base64
-import io
-import cv2
-import numpy as np
+import base64, io, cv2, numpy as np
 from PIL import Image
+import os
 
 app = Flask(__name__)
+
+# Force DeepFace to use a fixed cache directory (if possible, outside ephemeral paths)
+os.environ["DEEPFACE_HOME"] = "./.deepface"  # Local folder to store weights
+
+# Load models only once
+print("Preloading models...")
+models = {
+    "Facenet512": DeepFace.build_model("Facenet512")
+}
+print("Models loaded.")
 
 def decode_image(base64_string):
     try:
@@ -20,18 +28,17 @@ def decode_image(base64_string):
 
 def extract_face(image):
     try:
-        faces = DeepFace.extract_faces(image, detector_backend="opencv", enforce_detection=False)
-        if not faces:
+        faces = DeepFace.extract_faces(image, detector_backend="mtcnn", enforce_detection=False)
+        if len(faces) == 0:
             return None
-        area = faces[0]["facial_area"]
-        x, y, w, h = area["x"], area["y"], area["w"], area["h"]
+        face_data = faces[0]
+        facial_area = face_data["facial_area"]
+        x, y, w, h = facial_area["x"], facial_area["y"], facial_area["w"], facial_area["h"]
         face_crop = image[y:y+h, x:x+w]
         return cv2.resize(face_crop, (160, 160))
     except Exception as e:
         print(f"[ERROR] Face extraction failed: {e}")
         return None
-
-import traceback
 
 @app.route('/compare_faces', methods=['POST'])
 def compare_faces():
@@ -49,21 +56,23 @@ def compare_faces():
         if img1 is None or img2 is None:
             return jsonify({"error": "Invalid image data"}), 400
 
-        resultFacenet512 = DeepFace.verify(
-            face1, face2, model_name="Facenet512", detector_backend="opencv", enforce_detection=False
+
+        resultFacenet = DeepFace.verify(
+            face1, face2, model_name="Facenet", model=models["Facenet"],
+            detector_backend="skip", enforce_detection=False
         )
 
-        similarity = (1 - resultFacenet512['distance']) * 100
 
+        similarity = (1 - resultFacenet['distance']) * 100
         return jsonify({
-            "match": resultFacenet512['verified'],
+            "match": resultFacenet['verified'],
             "similarity": f"{similarity:.2f}"
         })
 
     except Exception as e:
-        print("[ERROR]", e)
-        traceback.print_exc()
+        print(f"[ERROR] {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
+
