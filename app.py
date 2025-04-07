@@ -8,7 +8,8 @@ app = Flask(__name__)
 
 # Force DeepFace to use a fixed cache directory (if possible, outside ephemeral paths)
 os.environ["DEEPFACE_HOME"] = "./.deepface"  # Local folder to store weights
-
+weights_dir = os.path.join(os.environ["DEEPFACE_HOME"], "weights")
+os.makedirs(weights_dir, exist_ok=True)
 # Load models only once
 print("Preloading models...")
 models = {
