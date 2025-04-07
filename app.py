@@ -4,12 +4,22 @@ import base64, io, cv2, numpy as np
 from PIL import Image
 import os
 
+import gdown
+
 app = Flask(__name__)
 
-# Force DeepFace to use a fixed cache directory (if possible, outside ephemeral paths)
-os.environ["DEEPFACE_HOME"] = "./.deepface"  # Local folder to store weights
-weights_dir = os.path.join(os.environ["DEEPFACE_HOME"], "weights")
-os.makedirs(weights_dir, exist_ok=True)
+
+# Set environment so DeepFace looks in the correct place
+os.environ["DEEPFACE_HOME"] = "."
+
+# Ensure directories
+weights_path = "./.deepface/weights/facenet512_weights.h5"
+os.makedirs(os.path.dirname(weights_path), exist_ok=True)
+
+# Download manually once
+if not os.path.exists(weights_path):
+    url = "https://github.com/serengil/deepface_models/releases/download/v1.0/facenet512_weights.h5"
+    gdown.download(url, weights_path, quiet=False)
 # Load models only once
 print("Preloading models...")
 models = {
