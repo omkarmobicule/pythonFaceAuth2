@@ -8,7 +8,7 @@ import numpy as np
 app = Flask(__name__)
 
 # Set DeepFace home directory and weights path
-DEEPFACE_HOME = "./.deepface"
+DEEPFACE_HOME = "./"
 os.environ["DEEPFACE_HOME"] = DEEPFACE_HOME
 weights_dir = os.path.join(DEEPFACE_HOME, "weights")
 facenet_weights_path = os.path.join(weights_dir, "facenet_weights.h5")
