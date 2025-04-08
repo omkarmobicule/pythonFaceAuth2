@@ -1,29 +1,31 @@
+import os
 from flask import Flask, request, jsonify
 from deepface import DeepFace
 import cv2
 import base64
 import numpy as np
-import os
 
 app = Flask(__name__)
 
 # Set DeepFace model cache directory
 os.environ["DEEPFACE_HOME"] = "./.deepface"
+weights_dir = os.path.join(os.environ["DEEPFACE_HOME"], "weights")
 
-# Define path to avoid repeated downloads
-weights_path = os.path.join(os.environ["DEEPFACE_HOME"], "weights", "facenet_weights.h5")
+# Ensure directory structure exists
+if not os.path.exists(weights_dir):
+    print("[INIT] Creating weights directory...")
+    os.makedirs(weights_dir, exist_ok=True)
 
-# Load model only once
+# Load the model
 print("[INIT] Loading FaceNet model...")
-
-if not os.path.exists(weights_path):
-    print("[INIT] FaceNet weights not found. They will be downloaded...")
-
-models = {
-    "Facenet": DeepFace.build_model("Facenet")
-}
-
-print("[INIT] FaceNet model loaded successfully.")
+try:
+    models = {
+        "Facenet": DeepFace.build_model("Facenet")
+    }
+    print("[INIT] FaceNet model loaded successfully.")
+except Exception as e:
+    print(f"[INIT ERROR] Failed to load FaceNet model: {e}")
+    raise
 
 # Decode base64 string to OpenCV image
 def decode_image(base64_str):
