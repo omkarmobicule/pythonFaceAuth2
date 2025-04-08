@@ -7,18 +7,24 @@ import numpy as np
 
 app = Flask(__name__)
 
-os.environ["DEEPFACE_HOME"] = "."  # Set DeepFace home directory
-weights_dir = os.path.join(os.environ["DEEPFACE_HOME"], "weights")
-print(f"[DEBUG] DEEPFACE_HOME={os.environ['DEEPFACE_HOME']}")
-print(f"[DEBUG] weights_dir={weights_dir}")
+# Set DeepFace home directory and weights path
+DEEPFACE_HOME = "./"
+os.environ["DEEPFACE_HOME"] = DEEPFACE_HOME
+weights_dir = os.path.join(DEEPFACE_HOME, "weights")
+facenet_weights_path = os.path.join(weights_dir, "facenet_weights.h5")
 
-# Check and create directory structure
+# Ensure weights directory exists
 if not os.path.exists(weights_dir):
     print(f"[INIT] Creating weights directory at: {weights_dir}")
     os.makedirs(weights_dir, exist_ok=True)
 
+# Check if weights are already downloaded
+if not os.path.exists(facenet_weights_path):
+    raise FileNotFoundError(f"[ERROR] FaceNet weights not found at {facenet_weights_path}. "
+                            f"Please download them manually from: "
+                            f"https://github.com/serengil/deepface_models/releases/download/v1.0/facenet_weights.h5")
 
-# Load the model
+# Load the FaceNet model using local weights
 print("[INIT] Loading FaceNet model...")
 try:
     models = {
@@ -57,14 +63,9 @@ def ping():
 def compare_faces():
     try:
         print("[compare_faces] Received request.")
-        print(f"[compare_faces] Request from: {request.remote_addr}")
-
         data = request.json
         img1_base64 = data.get('image1', '')
         img2_base64 = data.get('image2', '')
-
-        print(f"[compare_faces] Length of image1 base64: {len(img1_base64)}")
-        print(f"[compare_faces] Length of image2 base64: {len(img2_base64)}")
 
         img1 = decode_image(img1_base64)
         img2 = decode_image(img2_base64)
@@ -74,7 +75,6 @@ def compare_faces():
             return jsonify({"error": "Invalid image data"}), 400
 
         print("[compare_faces] Running DeepFace.verify...")
-
         resultFacenet = DeepFace.verify(
             img1, img2,
             model_name="Facenet", model=models["Facenet"],
@@ -82,15 +82,12 @@ def compare_faces():
         )
 
         similarity = (1 - resultFacenet['distance']) * 100
-        print(f"[compare_faces] Verification result: Match = {resultFacenet['verified']}, Similarity = {similarity:.2f}%")
+        print(f"[compare_faces] Match: {resultFacenet['verified']}, Similarity: {similarity:.2f}%")
 
-        response = {
+        return jsonify({
             "match": resultFacenet['verified'],
             "similarity": f"{similarity:.2f}"
-        }
-
-        print("[compare_faces] Returning response to client.")
-        return jsonify(response)
+        })
 
     except Exception as e:
         print(f"[compare_faces ERROR] {e}")
@@ -100,4 +97,4 @@ def compare_faces():
         }), 500
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=8080, debug=True)
