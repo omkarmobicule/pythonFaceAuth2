@@ -7,14 +7,16 @@ import numpy as np
 
 app = Flask(__name__)
 
-# Set DeepFace model cache directory
-os.environ["DEEPFACE_HOME"] = "./.deepface"
+os.environ["DEEPFACE_HOME"] = "."  # Set DeepFace home directory
 weights_dir = os.path.join(os.environ["DEEPFACE_HOME"], "weights")
+print(f"[DEBUG] DEEPFACE_HOME={os.environ['DEEPFACE_HOME']}")
+print(f"[DEBUG] weights_dir={weights_dir}")
 
-# Ensure directory structure exists
+# Check and create directory structure
 if not os.path.exists(weights_dir):
-    print("[INIT] Creating weights directory...")
+    print(f"[INIT] Creating weights directory at: {weights_dir}")
     os.makedirs(weights_dir, exist_ok=True)
+
 
 # Load the model
 print("[INIT] Loading FaceNet model...")
