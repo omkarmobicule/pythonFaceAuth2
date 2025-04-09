@@ -54,10 +54,12 @@ def compare_faces():
 
         print("[compare_faces] Running DeepFace.verify...")
 
+        # No need to pass `model`, just specify `model_name`
         resultFacenet = DeepFace.verify(
             img1, img2,
-            model_name="Facenet", model=models["Facenet"],
-            detector_backend="skip", enforce_detection=False
+            model_name="Facenet",
+            detector_backend="skip",
+            enforce_detection=False
         )
 
         similarity = (1 - resultFacenet['distance']) * 100
@@ -73,4 +75,4 @@ def compare_faces():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8080, debug=False)
+    app.run(host="0.0.0.0", port=5000, debug=False)
