@@ -7,12 +7,12 @@ import numpy as np
 app = Flask(__name__)
 
 # Load model dynamically
-print("[INIT] Loading FaceNet model...")
+print("[INIT] Loading Facenet512 model...")
 try:
     models = {
-        "Facenet": DeepFace.build_model("Facenet")
+        "Facenet512": DeepFace.build_model("Facenet512")
     }
-    print("[INIT] FaceNet model loaded successfully.")
+    print("[INIT] Facenet512 model loaded successfully.")
 except Exception as e:
     print(f"[INIT ERROR] Failed to load FaceNet model: {e}")
     exit(1)
