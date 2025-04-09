@@ -62,13 +62,15 @@ def compare_faces():
             enforce_detection=False
         )
 
+        # Convert numpy.bool_ to Python bool
+        verified = bool(resultFacenet['verified'])
         similarity = (1 - resultFacenet['distance']) * 100
-        print(f"[compare_faces] Verification result: Match = {resultFacenet['verified']}, Similarity = {similarity:.2f}%")
 
         return jsonify({
-            "match": resultFacenet['verified'],
+            "match": verified,
             "similarity": f"{similarity:.2f}"
         })
+
 
     except Exception as e:
         print(f"[compare_faces ERROR] {e}")
