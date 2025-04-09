@@ -1,5 +1,5 @@
 deepface==0.0.79
-tensorflow
+tensorflow==2.12.0
 keras
 tf-keras
 opencv-python
