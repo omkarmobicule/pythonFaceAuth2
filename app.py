@@ -57,8 +57,8 @@ def compare_faces():
         # No need to pass `model`, just specify `model_name`
         resultFacenet = DeepFace.verify(
             img1, img2,
-            model_name="Facenet",
-            detector_backend="skip",
+            model_name="Facenet512",
+            detector_backend="opencv",
             enforce_detection=False
         )
 
